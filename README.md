@@ -39,16 +39,6 @@ vcs import rmf-simulation-src < rmf-simulation/rmf-simulation.repos
 # Build RMF Simulation Docker image
 docker build -f rmf-simulation/rmf-simulation.Dockerfile -t open-rmf/rmf_deployment_template/rmf-simulation .
 ```
-
-```bash
-# Import RMF Simulation source code
-mkdir rmf-simulation-src2
-vcs import rmf-simulation-src2 < rmf-simulation/rmf-simulation2.repos
-```
-```bash
-# Build RMF Simulation2 Docker image
-docker build -f rmf-simulation/rmf-simulation2.Dockerfile -t open-rmf/rmf_deployment_template/rmf-simulation2 .
-```
 #### Build rmf-web
 ```bash
 # Import RMF Web source code
@@ -98,22 +88,6 @@ docker run -p 3000:80 --rm \
 
 # rmf_traffic_editor
 
-### Building images
-
-#### Build rmf_traffic_editor
-
-```bash
-# Import RMF Web source code
-mkdir rmf_traffic_editor-src
-vcs import rmf_traffic_editor-src < rmf_traffic_editor/rmf_traffic_editor.repos
-```
-```bash
-# Builds an image for RMF web development environment.
-docker build -f rmf_traffic_editor/rmf_traffic_editor.Dockerfile -t open-rmf/rmf_deployment_template/rmf_traffic_editor .
-```
-
-### Running images
-
 Run `rmf_traffic_editor`
 ```bash
 docker run --network=host \
@@ -122,21 +96,12 @@ docker run --network=host \
 --env="DISPLAY" \
 --env="QT_X11_NO_MITSHM=1" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
---volume="/home/zeta/server_docker_dev/rmf/rmf_traffic_editor/rmf_traffic_editor/map:/tmp" \
-open-rmf/rmf_deployment_template/rmf_traffic_editor:latest \
+--volume="/home/zeta/robot_server/rmf/rmf_deployment_template/rmf-src/rmf/rmf_traffic_editor/map:/tmp" \
+open-rmf/rmf_deployment_template/rmf:latest \
 bash -c "traffic-editor"
 ```
 
 # Build turtlebot3
-#### install vcstool
-```bash
-# These commands are executed on your local system to setup ROS 2 and RMF environment
-curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | \
-sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-sudo apt update
-sudo apt install python3-vcstool -y
-```
 
 #### Build turtlebot3 image
 ```bash
@@ -155,7 +120,7 @@ docker run --network=host -it --rm \
            --env="DISPLAY" \
            --env="QT_X11_NO_MITSHM=1" \
            --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
            --privileged \
            --runtime=nvidia \
            open-rmf/rmf_deployment_template/turtlebot3:latest \
@@ -169,7 +134,7 @@ docker run --network=host -it --rm \
            --env="DISPLAY" \
            --env="QT_X11_NO_MITSHM=1" \
            --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
            --privileged \
            --runtime=nvidia \
            open-rmf/rmf_deployment_template/turtlebot3:latest \
@@ -183,7 +148,7 @@ docker run --network=host -it --rm \
            --env="DISPLAY" \
            --env="QT_X11_NO_MITSHM=1" \
            --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
            --privileged \
            --runtime=nvidia \
            open-rmf/rmf_deployment_template/turtlebot3:latest \
@@ -197,7 +162,7 @@ docker run --network=host -it --rm \
            --env="DISPLAY" \
            --env="QT_X11_NO_MITSHM=1" \
            --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
            --privileged \
            --runtime=nvidia \
            open-rmf/rmf_deployment_template/turtlebot3:latest \
@@ -211,7 +176,7 @@ docker run --network=host -it --rm \
            --env="DISPLAY" \
            --env="QT_X11_NO_MITSHM=1" \
            --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
            --privileged \
            --runtime=nvidia \
            open-rmf/rmf_deployment_template/turtlebot3:latest \
@@ -222,3 +187,47 @@ docker run --network=host -it --rm \
 
 
 
+#### Build ecobot_fleep
+```bash
+# Build RMF Simulation Docker image
+docker build -f Dockerfile -t open-rmf/rmf_deployment_template/rmf-simulation-ecobot .
+```
+
+#### Run ecobot_fleep
+Run `rmf-simulation`
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+open-rmf/rmf_deployment_template/rmf-simulation-ecobot:latest \
+bash -c "ros2 launch rmf_demos office.launch.xml run_fleet_adapters:=0"
+```
+
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+open-rmf/rmf_deployment_template/rmf-simulation-ecobot:latest \
+bash -c "ros2 run fleet_adapter_ecobot fleet_adapter_ecobot \
+    -c src/fleet_adapter_ecobot/configs/robot_config.yaml \
+    -n install/rmf_demos_maps/share/rmf_demos_maps/maps/office/nav_graphs/0.yaml \
+    -s "http://localhost:8000/_internal" \
+    -tf src/fleet_adapter_ecobot/configs/test_api_config.yaml"
+```
+
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+open-rmf/rmf_deployment_template/rmf-simulation-ecobot:latest \
+bash -c "ros2 run rmf_demos_tasks dispatch_patrol -p pantry"
+```
