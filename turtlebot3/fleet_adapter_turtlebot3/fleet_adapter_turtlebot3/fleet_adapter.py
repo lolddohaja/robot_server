@@ -28,9 +28,18 @@ from rclpy.duration import Duration
 import rmf_adapter
 from rmf_adapter import Adapter
 import rmf_adapter.easy_full_control as rmf_easy
+
+from rmf_fleet_msgs.msg import LaneRequest, ClosedLanes, ModeRequest, RobotMode
+
 from rmf_adapter import Transformation
 
-from .RobotClientAPI import RobotAPI, RobotUpdateData, RobotAPIResult
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSHistoryPolicy as History
+from rclpy.qos import QoSDurabilityPolicy as Durability
+from rclpy.qos import QoSReliabilityPolicy as Reliability
+from rclpy.qos import qos_profile_system_default
+
+from .Turtlebot3ClientAPI import Turtlebot3API, RobotUpdateData, RobotAPIResult
 
 
 # ------------------------------------------------------------------------------
@@ -123,7 +132,7 @@ def main(argv=sys.argv):
 
     # Initialize robot API for this fleet
     fleet_mgr_yaml = config_yaml['fleet_manager']
-    api = RobotAPI(fleet_mgr_yaml)
+    api = Turtlebot3API(fleet_mgr_yaml)
 
     robots = {}
     for robot_name in fleet_config.known_robots:
@@ -180,7 +189,7 @@ class RobotAdapter:
         name: str,
         configuration,
         node,
-        api: RobotAPI,
+        api: Turtlebot3API,
         fleet_handle
     ):
         self.name = name

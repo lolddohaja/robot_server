@@ -161,7 +161,24 @@ class Turtlebot3API:
         except Exception as e:
             print(f"Error getting position for {robot_name}: {e}")
             return None
-
+        
+    def send_current_position(self, robot_name: str, current_pose):
+        ''' 현재 로봇의 위치를 서버에 전송합니다.'''
+        url = self.prefix + f'/open-rmf/rmf_demos_fm/update_position?robot_name={robot_name}'
+        data = {'current_position': {'x': current_pose[0], 'y': current_pose[1], 'theta': current_pose[2]}}
+        
+        try:
+            response = requests.post(url, timeout=self.timeout, json=data)
+            response.raise_for_status()
+            if self.debug:
+                print(f'Response: {response.json()}')
+            return response.json()['success']
+        except HTTPError as http_err:
+            print(f'HTTP error for {robot_name} in send_current_position: {http_err}')
+        except Exception as err:
+            print(f'Other error for {robot_name} in send_current_position: {err}')
+        return False
+    
     def battery_soc(self, robot_name: str):
         url = f"{self.prefix}/open-rmf/rmf_demos_fm/battery_soc?robot_name={robot_name}"
         try:
