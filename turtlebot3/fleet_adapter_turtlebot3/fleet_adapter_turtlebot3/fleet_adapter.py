@@ -30,7 +30,7 @@ from rmf_adapter import Adapter
 import rmf_adapter.easy_full_control as rmf_easy
 from rmf_adapter import Transformation
 
-from .RobotClientAPI import RobotAPI
+from .RobotClientAPI import RobotAPI, RobotUpdateData, RobotAPIResult
 
 
 # ------------------------------------------------------------------------------
@@ -106,18 +106,20 @@ def main(argv=sys.argv):
     adapter.start()
     time.sleep(1.0)
 
-    if args.server_uri == '':
+    node.declare_parameter('server_uri', '')
+    server_uri = node.get_parameter(
+        'server_uri'
+    ).get_parameter_value().string_value
+    if server_uri == '':
         server_uri = None
-    else:
-        server_uri = args.server_uri
 
     fleet_config.server_uri = server_uri
     fleet_handle = adapter.add_easy_fleet(fleet_config)
 
     # Configure the transforms between robot and RMF frames
-    for level, coords in config_yaml['reference_coordinates'].items():
-        tf = compute_transforms(level, coords, node)
-        fleet_config.add_robot_coordinates_transformation(level, tf)
+    # for level, coords in config_yaml['reference_coordinates'].items():
+    #     tf = compute_transforms(level, coords, node)
+    #     fleet_config.add_robot_coordinates_transformation(level, tf)
 
     # Initialize robot API for this fleet
     fleet_mgr_yaml = config_yaml['fleet_manager']
@@ -155,6 +157,9 @@ def main(argv=sys.argv):
     update_thread = threading.Thread(target=update_loop, args=())
     update_thread.start()
 
+    # Connect to the extra ROS2 topics that are relevant for the adapter
+    ros_connections(node, robots, fleet_handle)
+
     # Create executor for the command handle node
     rclpy_executor = rclpy.executors.SingleThreadedExecutor()
     rclpy_executor.add_node(node)
@@ -168,6 +173,7 @@ def main(argv=sys.argv):
     rclpy.shutdown()
 
 
+
 class RobotAdapter:
     def __init__(
         self,
@@ -179,20 +185,30 @@ class RobotAdapter:
     ):
         self.name = name
         self.execution = None
-        self.update_handle = None
+        self.teleoperation = None
         self.configuration = configuration
         self.node = node
         self.api = api
         self.fleet_handle = fleet_handle
+        
+        self.cmd_id = 0
+        self.update_handle = None
+        self.override = None
+        self.issue_cmd_thread = None
+        self.cancel_cmd_event = threading.Event()
 
-    def update(self, state):
+    def update(self, state, data: RobotUpdateData):
         activity_identifier = None
         if self.execution:
-            if self.api.is_command_completed():
+            if data.is_command_completed(self.cmd_id):
                 self.execution.finished()
                 self.execution = None
+                self.teleoperation = None
             else:
                 activity_identifier = self.execution.identifier
+
+        if self.teleoperation is not None:
+            self.teleoperation.update(data)
 
         self.update_handle.update(state, activity_identifier)
 
@@ -208,34 +224,164 @@ class RobotAdapter:
         )
 
     def navigate(self, destination, execution):
+        self.cmd_id += 1
         self.execution = execution
         self.node.get_logger().info(
             f'Commanding [{self.name}] to navigate to {destination.position} '
-            f'on map [{destination.map}]'
+            f'on map [{destination.map}]: cmd_id {self.cmd_id}'
         )
 
-        self.api.navigate(
-            self.name,
-            destination.position,
-            destination.map,
-            destination.speed_limit
+        if destination.dock is not None:
+            self.attempt_cmd_until_success(
+                cmd=self.perform_docking,
+                args=(destination,)
+            )
+            return
+
+        self.attempt_cmd_until_success(
+            cmd=self.api.navigate,
+            args=(
+                self.name,
+                self.cmd_id,
+                destination.position,
+                destination.map,
+                destination.speed_limit
+            )
         )
 
     def stop(self, activity):
         if self.execution is not None:
             if self.execution.identifier.is_same(activity):
                 self.execution = None
-                self.stop(self.name)
+                self.attempt_cmd_until_success(
+                    cmd=self.api.stop,
+                    args=(self.name, self.cmd_id)
+                )
 
     def execute_action(self, category: str, description: dict, execution):
-        ''' Trigger a custom action you would like your robot to perform.
-        You may wish to use RobotAPI.start_activity to trigger different
-        types of actions to your robot.'''
+        self.cmd_id += 1
         self.execution = execution
-        # ------------------------ #
-        # IMPLEMENT YOUR CODE HERE #
-        # ------------------------ #
-        return
+
+        match category:
+            case 'teleop':
+                self.teleoperation = Teleoperation(execution)
+                self.attempt_cmd_until_success(
+                    cmd=self.api.toggle_teleop,
+                    args=(self.name, True)
+                )
+
+    def finish_action(self):
+        # This is triggered by a ModeRequest callback which allows human
+        # operators to manually change the operational mode of the robot. This
+        # is typically used to indicate when teleoperation has finished.
+        if self.execution is not None:
+            self.execution.finished()
+            self.execution = None
+            self.attempt_cmd_until_success(
+                cmd=self.api.toggle_teleop,
+                args=(self.name, False)
+            )
+
+    def perform_docking(self, destination):
+        match self.api.start_activity(
+            self.name,
+            self.cmd_id,
+            'dock',
+            destination.dock()
+        ):
+            case (RobotAPIResult.SUCCESS, path):
+                self.override = self.execution.override_schedule(
+                    path['map_name'],
+                    path['path']
+                )
+                return True
+            case RobotAPIResult.RETRY:
+                return False
+            case RobotAPIResult.IMPOSSIBLE:
+                # If the fleet manager does not know this dock name, then treat
+                # it as a regular navigation request
+                return self.api.navigate(
+                    self.name,
+                    self.cmd_id,
+                    destination.position,
+                    destination.map,
+                    destination.speed_limit
+                )
+
+    def perform_clean(self, zone):
+        match self.api.start_activity(self.name, self.cmd_id, 'clean', zone):
+            case (RobotAPIResult.SUCCESS, path):
+                self.node.get_logger().info(
+                    f'Commanding [{self.name}] to clean zone [{zone}]'
+                )
+                self.override = self.execution.override_schedule(
+                    path['map_name'],
+                    path['path']
+                )
+                return True
+            case RobotAPIResult.RETRY:
+                return False
+            case RobotAPIResult.IMPOSSIBLE:
+                self.node.get_logger().error(
+                    f'Fleet manager for [{self.name}] does not know how to '
+                    f'clean zone [{zone}]. We will terminate the activity.'
+                )
+                self.execution.finished()
+                self.execution = None
+                return True
+
+    def attempt_cmd_until_success(self, cmd, args):
+        self.cancel_cmd_attempt()
+
+        def loop():
+            while not cmd(*args):
+                self.node.get_logger().warn(
+                    f'Failed to contact fleet manager for robot {self.name}'
+                )
+                if self.cancel_cmd_event.wait(1.0):
+                    break
+
+        self.issue_cmd_thread = threading.Thread(
+            target=loop,
+            args=()
+        )
+        self.issue_cmd_thread.start()
+
+    def cancel_cmd_attempt(self):
+        if self.issue_cmd_thread is not None:
+            self.cancel_cmd_event.set()
+            if self.issue_cmd_thread.is_alive():
+                self.issue_cmd_thread.join()
+                self.issue_cmd_thread = None
+        self.cancel_cmd_event.clear()
+
+
+class Teleoperation:
+    def __init__(self, execution):
+        self.execution = execution
+        self.override = None
+        self.last_position = None
+
+    def update(self, data: RobotUpdateData):
+        if self.last_position is None:
+            print(
+                'about to override schedule with '
+                f'{data.map}: {[data.position]}'
+            )
+            self.override = self.execution.override_schedule(
+                data.map, [data.position], 30.0
+            )
+            self.last_position = data.position
+        else:
+            dx = self.last_position[0] - data.position[0]
+            dy = self.last_position[1] - data.position[1]
+            dist = math.sqrt(dx*dx + dy*dy)
+            if dist > 0.1:
+                print('about to replace override schedule')
+                self.override = self.execution.override_schedule(
+                    data.map, [data.position], 30.0
+                )
+                self.last_position = data.position
 
 
 # Parallel processing solution derived from
@@ -271,6 +417,72 @@ def update_robot(robot: RobotAdapter):
         return
 
     robot.update(state)
+
+
+
+def ros_connections(node, robots, fleet_handle):
+    fleet_name = fleet_handle.more().fleet_name
+
+    transient_qos = QoSProfile(
+        history=History.KEEP_LAST,
+        depth=1,
+        reliability=Reliability.RELIABLE,
+        durability=Durability.TRANSIENT_LOCAL
+    )
+
+    closed_lanes_pub = node.create_publisher(
+        ClosedLanes,
+        'closed_lanes',
+        qos_profile=transient_qos
+    )
+
+    closed_lanes = set()
+
+    def lane_request_cb(msg):
+        if msg.fleet_name is None or msg.fleet_name != fleet_name:
+            return
+
+        fleet_handle.open_lanes(msg.open_lanes)
+        fleet_handle.close_lanes(msg.close_lanes)
+
+        for lane_idx in msg.close_lanes:
+            closed_lanes.add(lane_idx)
+
+        for lane_idx in msg.open_lanes:
+            closed_lanes.remove(lane_idx)
+
+        state_msg = ClosedLanes()
+        state_msg.fleet_name = fleet_name
+        state_msg.closed_lanes = list(closed_lanes)
+        closed_lanes_pub.publish(state_msg)
+
+    def mode_request_cb(msg):
+        if (
+            msg.fleet_name is None
+            or msg.fleet_name != fleet_name
+            or msg.robot_name is None
+        ):
+            return
+
+        if msg.mode.mode == RobotMode.MODE_IDLE:
+            robot = robots.get(msg.robot_name)
+            if robot is None:
+                return
+            robot.finish_action()
+
+    node.create_subscription(
+        LaneRequest,
+        'lane_closure_requests',
+        lane_request_cb,
+        qos_profile=qos_profile_system_default
+    )
+
+    node.create_subscription(
+        ModeRequest,
+        'action_execution_notice',
+        mode_request_cb,
+        qos_profile=qos_profile_system_default
+    )
 
 
 if __name__ == '__main__':
