@@ -161,7 +161,7 @@ class Turtlebot3API:
         except Exception as e:
             print(f"Error getting position for {robot_name}: {e}")
             return None
-        
+    '''   
     def send_current_position(self, robot_name: str, current_pose):
         ''' 현재 로봇의 위치를 서버에 전송합니다.'''
         url = self.prefix + f'/open-rmf/rmf_demos_fm/update_position?robot_name={robot_name}'
@@ -178,7 +178,7 @@ class Turtlebot3API:
         except Exception as err:
             print(f'Other error for {robot_name} in send_current_position: {err}')
         return False
-    
+    '''
     def battery_soc(self, robot_name: str):
         url = f"{self.prefix}/open-rmf/rmf_demos_fm/battery_soc?robot_name={robot_name}"
         try:

@@ -210,6 +210,25 @@ class FleetManager(Node):
             response['success'] = True
             return response
 
+        def euler_to_quaternion(roll, pitch, yaw):
+            """
+            Convert Euler angles to a quaternion.
+
+            Parameters:
+            roll (float): Rotation around the x-axis in radians
+            pitch (float): Rotation around the y-axis in radians
+            yaw (float): Rotation around the z-axis in radians
+
+            Returns:
+            Quaternion: The corresponding quaternion
+            """
+            qx = math.sin(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) - math.cos(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
+            qy = math.cos(roll/2) * math.sin(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.cos(pitch/2) * math.sin(yaw/2)
+            qz = math.cos(roll/2) * math.cos(pitch/2) * math.sin(yaw/2) - math.sin(roll/2) * math.sin(pitch/2) * math.cos(yaw/2)
+            qw = math.cos(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
+
+            return Quaternion(x=qx, y=qy, z=qz, w=qw)
+
         @app.post('/open-rmf/rmf_demos_fm/navigate/',
                   response_model=Response)
         async def navigate(robot_name: str, cmd_id: int, dest: Request):
@@ -225,7 +244,7 @@ class FleetManager(Node):
             goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
             goal_msg.pose.pose.position.x = dest.destination['x']
             goal_msg.pose.pose.position.y = dest.destination['y']
-            goal_msg.pose.pose.orientation = euler_to_quaternion(0, 0, dest.destination['yaw'])
+            goal_msg.pose.pose.orientation = self.euler_to_quaternion(0, 0, dest.destination['yaw'])
 
             # Sending goal to Nav2 action server
             future = robot.nav2_client.send_goal_async(goal_msg)
@@ -297,6 +316,7 @@ class FleetManager(Node):
             response['success'] = True
             return response
             '''
+
         @app.get('/open-rmf/rmf_demos_fm/stop_robot/',
                  response_model=Response)
         async def stop(robot_name: str, cmd_id: int):
