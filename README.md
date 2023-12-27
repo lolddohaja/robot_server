@@ -88,7 +88,8 @@ docker run --network=host \
 --env="QT_X11_NO_MITSHM=1" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 open-rmf/rmf_deployment_template/rmf-simulation:latest \
-bash -c "ros2 topic echo /scan"
+bash -c "ros2 launch rmf_demos_gz_classic campus.launch.xml \
+server_uri:=ws://localhost:8000/_internal"
 ```
 
 Run `rmf-web-dashboard`

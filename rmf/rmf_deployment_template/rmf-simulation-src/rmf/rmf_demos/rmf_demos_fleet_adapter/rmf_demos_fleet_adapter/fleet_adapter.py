@@ -172,13 +172,12 @@ class RobotAdapter:
         self.name = name
         self.execution = None
         self.teleoperation = None
+        self.cmd_id = 0
+        self.update_handle = None
         self.configuration = configuration
         self.node = node
         self.api = api
         self.fleet_handle = fleet_handle
-        
-        self.cmd_id = 0
-        self.update_handle = None
         self.override = None
         self.issue_cmd_thread = None
         self.cancel_cmd_event = threading.Event()
