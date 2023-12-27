@@ -118,95 +118,12 @@ bash -c "traffic-editor"
 #### Build turtlebot3 image
 ```bash
 # Build turtlebot3 Docker image
-docker build -f turtlebot3.Dockerfile -t open-rmf/rmf_deployment_template/turtlebot3_v3 .
+docker build -f turtlebot3.Dockerfile -t open-rmf/rmf_deployment_template/turtlebot3 .
 
 mkdir -p ~/.gazebo/models
 ```
 
 # Run turtlebot3
-
-#### run Empty World
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           ros2 launch turtlebot3_gazebo empty_world.launch.py"
-```
-#### run TurtleBot3 World
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py"
-```
-
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3_v2:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py"
-```
-#### run TurtleBot3 House
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py"
-```
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3_v2:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py"
-```
-#### run TurtleBot3 Move
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3:latest \
-           bash -c "ros2 run turtlebot3_teleop teleop_keyboard"
-```
 
 #### run 
 ```bash
@@ -221,34 +138,8 @@ docker run --network=host -it --rm \
            open-rmf/rmf_deployment_template/turtlebot3:latest \
            bash -c "export TURTLEBOT3_MODEL=waffle && \
            export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models && \
-           ros2 launch nav2_bringup tb3_simulation_launch.py headless:=False"
-```
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3_v2:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True"
-```
-
-```bash
-# Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3_v3:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           ros2 launch zeta_demos_gz turtlebot3_world.launch.xml use_sim_time:=True"
+           ros2 launch zeta_demos_gz turtlebot3_world.launch.xml headless:=False \
+           server_uri:=ws://localhost:8000/_internal"
 ```
 
 

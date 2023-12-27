@@ -21,8 +21,8 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && apt update && apt install -y \
 
 WORKDIR /opt/turtlebot3
 
-COPY turtlebot3 src/turtlebot3
 COPY zeta_demos_gz src/zeta_demos_gz
+COPY fleet_adapter_turtlebot3 src/fleet_adapter_turtlebot3
 
 RUN rosdep update --rosdistro $ROS_DISTRO
 

@@ -163,7 +163,7 @@ class Turtlebot3API:
             return None
     '''   
     def send_current_position(self, robot_name: str, current_pose):
-        ''' 현재 로봇의 위치를 서버에 전송합니다.'''
+
         url = self.prefix + f'/open-rmf/rmf_demos_fm/update_position?robot_name={robot_name}'
         data = {'current_position': {'x': current_pose[0], 'y': current_pose[1], 'theta': current_pose[2]}}
         
