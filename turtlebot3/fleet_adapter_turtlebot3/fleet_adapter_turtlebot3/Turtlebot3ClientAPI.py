@@ -200,7 +200,6 @@ class Turtlebot3API:
         except Exception as e:
             print(f"Error getting map for {robot_name}: {e}")
             return None
-        
 
     def is_command_completed(self):
         url = f"{self.prefix}/open-rmf/rmf_demos_fm/command_status"

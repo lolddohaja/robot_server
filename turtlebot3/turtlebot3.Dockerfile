@@ -1,6 +1,6 @@
 ARG BUILDER_NS="open-rmf/rmf_deployment_template"
 ARG TAG="latest"
-FROM $BUILDER_NS/builder-rosdep:$TAG
+FROM $BUILDER_NS/rmf-simulation:$TAG
 
 ARG NETRC
 
@@ -13,6 +13,7 @@ RUN apt update && apt install -y \
     ros-humble-rviz2 \
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
+    ros-humble-slam-toolbox \
     && rm -rf /var/lib/apt/lists/*
 
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && apt update && apt install -y \

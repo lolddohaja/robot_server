@@ -88,9 +88,10 @@ docker run --network=host \
 --env="QT_X11_NO_MITSHM=1" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 open-rmf/rmf_deployment_template/rmf-simulation:latest \
-bash -c "ros2 launch rmf_demos_gz_classic campus.launch.xml \
+bash -c "ros2 launch rmf_demos_gz_classic zeta_glhd.launch.xml \
 server_uri:=ws://localhost:8000/_internal"
 ```
+
 
 Run `rmf-web-dashboard`
 ```bash
@@ -118,14 +119,14 @@ bash -c "traffic-editor"
 #### Build turtlebot3 image
 ```bash
 # Build turtlebot3 Docker image
-docker build -f turtlebot3.Dockerfile -t open-rmf/rmf_deployment_template/turtlebot3 .
+docker build -f turtlebot3.Dockerfile -t open-rmf/rmf_deployment_template/rmf-simulation/turtlebot3 .
 
 mkdir -p ~/.gazebo/models
 ```
 
 # Run turtlebot3
 
-#### run 
+#### run
 ```bash
 # Run turtlebot3 Docker image
 docker run --network=host -it --rm \
@@ -135,12 +136,11 @@ docker run --network=host -it --rm \
            --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
            --privileged \
            --runtime=nvidia \
-           open-rmf/rmf_deployment_template/turtlebot3:latest \
-           bash -c "export TURTLEBOT3_MODEL=waffle && \
-           export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models && \
-           ros2 launch zeta_demos_gz turtlebot3_world.launch.xml headless:=False \
+           open-rmf/rmf_deployment_template/rmf-simulation/turtlebot3:latest \
+           bash -c "ros2 launch zeta_demos_gz turtlebot3_zeta_world.launch.xml headless:=False \
            server_uri:=ws://localhost:8000/_internal"
 ```
+
 
 
 #### Build ecobot_fleep

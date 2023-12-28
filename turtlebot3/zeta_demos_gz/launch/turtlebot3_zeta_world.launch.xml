@@ -1,0 +1,38 @@
+<?xml version='1.0' ?>
+
+<launch>
+  <arg name="gazebo_version" default="11"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="headless" default="False"/>
+
+  <!-- Common launch -->
+  <include file="$(find-pkg-share rmf_demos)/common.launch.xml">
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    <arg name="viz_config_file" value ="$(find-pkg-share rmf_demos)/include/glhd/glhd.rviz"/>
+    <arg name="config_file" value="$(find-pkg-share rmf_demos_maps)/zeta_glhd/zeta_glhd.building.yaml"/>
+  </include>
+
+  <!-- Turtlebot3 fleet adapter -->
+  <group>
+    <include file="$(find-pkg-share fleet_adapter_turtlebot3)/launch/fleet_adapter.launch.xml">
+      <arg name="use_sim_time" value="$(var use_sim_time)"/>
+      <arg name="nav_graph_file" value="$(find-pkg-share rmf_demos_maps)/maps/zeta_glhd/nav_graphs/0.yaml" />
+      <arg name="config_file" value="$(find-pkg-share fleet_adapter_turtlebot3)/config/zeta_glhd/turtlebot3_config.yaml"/>
+    </include>
+  </group>
+  
+  <!-- Simulation launch -->
+  <include file="$(find-pkg-share rmf_demos_gz_classic)/simulation.launch.xml">
+    <arg name="headless" value="false" />
+    <arg name="map_name" value="zeta_glhd" />
+    <arg name="gazebo_version" value="$(var gazebo_version)" />
+  </include>
+
+  <!-- navigation launch -->
+  <include file="$(find-pkg-share zeta_demos_gz)/turtlebot3_zeta_navigation2.launch.py">
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    <arg name="headless" value="$(var headless)"/>
+  </include>
+
+
+</launch>
