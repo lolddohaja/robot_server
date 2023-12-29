@@ -1,0 +1,53 @@
+version: '3'
+services:
+
+  rmf_api_server:
+    image: open-rmf/rmf_deployment_template/rmf-web-rmf-server:latest
+    network_mode: host
+
+  rmf_simulation:
+    image: open-rmf/rmf_deployment_template/rmf-simulation:latest
+    command: >
+      bash -c "ros2 launch rmf_demos_gz_classic glhd.launch.xml
+      server_uri:=ws://localhost:8000/_internal"
+    environment:
+      - DISPLAY
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu]
+    network_mode: host
+    depends_on:
+      - rmf_api_server
+
+  rmf_web_dashboard:
+    image: open-rmf/rmf_deployment_template/rmf-web-dashboard-local:latest
+    ports:
+      - "3000:80"
+    depends_on:
+      - rmf_api_server
+
+  rmf_traffic_editor:
+    image: open-rmf/rmf_deployment_template/rmf:latest
+    user: "1000:1000"
+    command: bash -c "traffic-editor"
+    environment:
+      - DISPLAY
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./map:/tmp/map
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu]
+    network_mode: host

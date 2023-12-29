@@ -1,0 +1,22 @@
+<?xml version='1.0' ?>
+
+<launch>
+  <arg name="use_sim_time" default="false"/>
+
+  <!-- Common launch -->
+  <include file="$(find-pkg-share rmf_demos)/common.launch.xml">
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    <arg name="viz_config_file" value ="$(find-pkg-share rmf_demos)/include/turtlebot_world/turtlebot_world.rviz"/>
+    <arg name="config_file" value="$(find-pkg-share rmf_demos_maps)/turtlebot_world/turtlebot_world.building.yaml"/>
+  </include>
+
+  <!-- TurtleBot3 Waffle Pi fleet adapter -->
+  <group>
+    <include file="$(find-pkg-share rmf_demos_fleet_adapter)/launch/fleet_adapter.launch.xml">
+      <arg name="use_sim_time" value="$(var use_sim_time)"/>
+      <arg name="nav_graph_file" value="$(find-pkg-share rmf_demos_maps)/maps/turtlebot_world/nav_graphs/0.yaml" />
+      <arg name="config_file" value="$(find-pkg-share rmf_demos)/config/turtlebot_world/turtlebot3_waffle_pi_config.yaml"/>
+    </include>
+  </group>
+
+</launch>

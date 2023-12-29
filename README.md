@@ -88,10 +88,9 @@ docker run --network=host \
 --env="QT_X11_NO_MITSHM=1" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 open-rmf/rmf_deployment_template/rmf-simulation:latest \
-bash -c "ros2 launch rmf_demos_gz_classic zeta_glhd.launch.xml \
+bash -c "ros2 launch rmf_demos_gz_classic turtlebot_world.launch.xml \
 server_uri:=ws://localhost:8000/_internal"
 ```
-
 
 Run `rmf-web-dashboard`
 ```bash
@@ -103,23 +102,134 @@ docker run -p 3000:80 --rm \
 
 Run `rmf_traffic_editor`
 ```bash
+docker compose up rmf_traffic_editor
+```
+
+save map copy to simulation-src/rmf/rmf_demos/rmf_demos_maps/maps
+
+build rmf-simulation again
+
+---------------------------
+Run `rmf-simulation`
+```bash
 docker run --network=host \
 -it \
 --runtime=nvidia --gpus all --rm \
 --env="DISPLAY" \
 --env="QT_X11_NO_MITSHM=1" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
---volume="/home/zeta/robot_server/rmf/rmf_deployment_template/rmf-src/rmf/rmf_traffic_editor/map:/tmp" \
-open-rmf/rmf_deployment_template/rmf:latest \
-bash -c "traffic-editor"
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ros2 launch rmf_demos_gz_classic simulation.launch.xml map_name:=turtlebot_world headless:=false"
 ```
+Run `rmf-common`
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ros2 launch rmf_demos common.launch.xml \
+config_file:=/opt/rmf/install/rmf_demos_maps/share/rmf_demos_maps/turtlebot_world/turtlebot_world.building.yaml \
+viz_config_file:=/opt/rmf/install/rmf_demos/share/rmf_demos/include/turtlebot_world/turtlebot_world.rviz"
+```
+
+Run `rmf-fleep-adapter`
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ros2 launch rmf_demos_fleet_adapter fleet_adapter.launch.xml \
+use_sim_time:=true \
+nav_graph_file:=/opt/rmf/install/rmf_demos_maps/share/rmf_demos_maps/maps/turtlebot_world/nav_graphs/0.yaml \
+config_file:=/opt/rmf/install/rmf_demos/share/rmf_demos/config/turtlebot_world/turtlebot3_waffle_pi_config.yaml"
+```
+
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ls /opt/rmf/install/rmf_demos/share/rmf_demos/config/turtlebot_world/turtlebot3_waffle_pi_config.yaml"
+```
+---------------------------
+
+---------------------------
+Run `rmf-simulation`
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ros2 launch rmf_demos_gz_classic simulation.launch.xml map_name:=glhd headless:=false"
+```
+Run `rmf-common`
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ros2 launch rmf_demos common.launch.xml \
+config_file:=/opt/rmf/install/rmf_demos_maps/share/rmf_demos_maps/glhd/glhd.building.yaml \
+viz_config_file:=/opt/rmf/install/rmf_demos/share/rmf_demos/include/glhd/glhd.rviz"
+```
+
+Run `rmf-fleep-adapter`
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ros2 launch rmf_demos_fleet_adapter fleet_adapter.launch.xml \
+use_sim_time:=true \
+nav_graph_file:=/opt/rmf/install/rmf_demos_maps/share/rmf_demos_maps/maps/glhd/nav_graphs/0.yaml \
+config_file:=/opt/rmf/install/rmf_demos/share/rmf_demos/config/glhd/deliveryRobot_config.yaml"
+```
+
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ls /opt/rmf/install/rmf_demos/share/rmf_demos/config/turtlebot_world/turtlebot3_waffle_pi_config.yaml"
+```
+---------------------------
+
 
 # Build turtlebot3
 
 #### Build turtlebot3 image
 ```bash
 # Build turtlebot3 Docker image
-docker build -f turtlebot3.Dockerfile -t open-rmf/rmf_deployment_template/rmf-simulation/turtlebot3 .
+docker build -f turtlebot3.Dockerfile -t open-rmf/rmf_deployment_template/turtlebot3 .
 
 mkdir -p ~/.gazebo/models
 ```
@@ -129,18 +239,32 @@ mkdir -p ~/.gazebo/models
 #### run
 ```bash
 # Run turtlebot3 Docker image
-docker run --network=host -it --rm \
-           --env="DISPLAY" \
-           --env="QT_X11_NO_MITSHM=1" \
-           --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-           --volume="/home/zeta/.gazebo/models:/root/.gazebo/models" \
-           --privileged \
-           --runtime=nvidia \
-           open-rmf/rmf_deployment_template/rmf-simulation/turtlebot3:latest \
-           bash -c "ros2 launch zeta_demos_gz turtlebot3_zeta_world.launch.xml headless:=False \
-           server_uri:=ws://localhost:8000/_internal"
+docker run --network=host \
+-it --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+--privileged \
+--runtime=nvidia \
+open-rmf/rmf_deployment_template/turtlebot3:latest \
+bash -c "export GAZEBO_MASTER_URI=http://localhost:11356 && \
+export TURTLEBOT3_MODEL=waffle && \
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models && \
+ros2 launch nav2_bringup tb3_simulation_launch.py headless:=False"
 ```
 
+```bash
+docker run --network=host \
+-it \
+--runtime=nvidia --gpus all --rm \
+--env="DISPLAY" \
+--env="QT_X11_NO_MITSHM=1" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+--volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
+open-rmf/rmf_deployment_template/rmf-simulation:latest \
+bash -c "ros2 topic echo /clicked_point"
+```
 
 
 #### Build ecobot_fleep

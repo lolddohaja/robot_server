@@ -6,6 +6,7 @@ FROM $BUILDER_NS/rmf:$TAG
 SHELL ["bash", "-c"]
 
 RUN apt update
+
 WORKDIR /opt/rmf
 
 # copy rmf-simulation source files
@@ -27,6 +28,13 @@ RUN rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO \
     --skip-keys dwa_local_planner \ 
     --skip-keys map_server \
     -y
+
+RUN apt update && apt install -y \
+    ros-humble-rviz2 \
+    ros-humble-navigation2 \
+    ros-humble-nav2-bringup \
+    ros-humble-slam-toolbox \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN . /opt/ros/$ROS_DISTRO/setup.sh \
   && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release

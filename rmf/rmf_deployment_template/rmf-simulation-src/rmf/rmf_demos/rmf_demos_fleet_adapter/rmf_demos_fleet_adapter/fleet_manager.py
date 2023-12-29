@@ -49,6 +49,12 @@ from typing import Optional
 from pydantic import BaseModel
 
 import threading
+
+#ADD
+from rclpy.action import ActionClient
+from geometry_msgs.msg import PoseStamped
+from nav2_msgs.action import NavigateToPose
+
 app = FastAPI()
 
 
@@ -135,6 +141,9 @@ class FleetManager(Node):
         fleet_manager_config = self.config['fleet_manager']
         self.action_paths = fleet_manager_config.get('action_paths', {})
         self.sio = socketio.Client()
+
+        #ADD
+        self.nav2_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
 
         @self.sio.on("/gps")
         def message(data):
@@ -231,6 +240,20 @@ class FleetManager(Node):
             cur_yaw = robot.state.location.yaw
             cur_loc = robot.state.location
             path_request.path.append(cur_loc)
+
+            #ADD
+            goal_msg = NavigateToPose.Goal()
+            goal_pose = PoseStamped()
+            goal_pose.header.frame_id = 'map'
+            goal_pose.header.stamp = self.get_clock().now().to_msg()
+            goal_pose.pose.position.x = target_x
+            goal_pose.pose.position.y = target_y
+            yaw_rad = math.radians(target_yaw)  # target_yaw를 라디안 단위로 변환
+            goal_pose.pose.orientation.z = math.sin(yaw_rad / 2)
+            goal_pose.pose.orientation.w = math.cos(yaw_rad / 2)
+            goal_msg.pose = goal_pose
+            self.nav2_client.wait_for_server()
+            self._send_goal_future = self.nav2_client.send_goal_async(goal_msg)
 
             disp = self.disp([target_x, target_y], [cur_x, cur_y])
             duration = int(disp/self.vehicle_traits.linear.nominal_velocity) +\
