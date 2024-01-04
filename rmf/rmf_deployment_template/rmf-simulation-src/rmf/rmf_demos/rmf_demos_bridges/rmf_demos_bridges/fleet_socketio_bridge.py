@@ -40,7 +40,7 @@ from rmf_fleet_msgs.msg import FleetState, RobotState
 log = logging.getLogger('werkzeug')
 log.disabled = True
 
-SUPPORTED_GPS_FRAMES = ['svy21']
+SUPPORTED_GPS_FRAMES = ['svy21', 'korean1995']
 
 # Temporary Message definition for GPS messages
 GPS_MESSAGE_DEFINITION = {
@@ -157,6 +157,10 @@ class FleetSocketIOBridge(Node):
         if frame == 'svy21':
             self._wgs_transformer = Transformer.from_crs(
                 'EPSG:3414', 'EPSG:4326')
+            return
+        elif frame == 'korean1995':
+            self._wgs_transformer = Transformer.from_crs(
+                'EPSG:4166', 'EPSG:4326')
             return
 
         raise Exception("This should not happen")

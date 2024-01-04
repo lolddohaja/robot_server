@@ -20,19 +20,21 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && apt update && apt install -y \
     ros-humble-turtlebot3-gazebo \
     && rm -rf /var/lib/apt/lists/*
 
-# WORKDIR /opt/turtlebot3
+WORKDIR /opt/turtlebot3
 
-# COPY zeta_demos_gz src/zeta_demos_gz
+COPY zeta_demos_gz src/zeta_demos_gz
 
-# RUN rosdep update --rosdistro $ROS_DISTRO
+RUN rosdep update --rosdistro $ROS_DISTRO
 
-# RUN apt update && rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
+RUN apt update && rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 
-# RUN . /opt/ros/$ROS_DISTRO/setup.sh \
-#   && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
+RUN . /opt/ros/$ROS_DISTRO/setup.sh \
+  && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 
-# RUN sed -i '$isource "/opt/turtlebot3/install/setup.bash"' /ros_entrypoint.sh
+RUN sed -i '$isource "/opt/turtlebot3/install/setup.bash"' /ros_entrypoint.sh
+
+RUN pip install roslibpy
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

@@ -85,11 +85,17 @@ class State:
         self.last_completed_request = None
         self.mode_teleop = False
         self.svy_transformer = Transformer.from_crs('EPSG:4326', 'EPSG:3414')
+        self.korea_transformer = Transformer.from_crs('EPSG:4326', 'EPSG:5179')
         self.gps_pos = [0, 0]
 
-    def gps_to_xy(self, gps_json: dict):
-        svy21_xy = \
-            self.svy_transformer.transform(gps_json['lat'], gps_json['lon'])
+    def gps_to_xy(self, gps_json: dict, country = 'Korea'):
+        if country == 'Singapore':
+            xy = self.svy_transformer.transform(gps_json['lat'], gps_json['lon'])
+        elif country == 'Korea':
+            xy = self.korea_transformer.transform(gps_json['lat'], gps_json['lon'])
+        else:
+            raise ValueError("Unsupported country")
+
         self.gps_pos[0] = svy21_xy[1]
         self.gps_pos[1] = svy21_xy[0]
 
@@ -150,7 +156,7 @@ class FleetManager(Node):
             try:
                 robot = json.loads(data)
                 robot_name = robot['robot_id']
-                self.robots[robot_name].gps_to_xy(robot)
+                self.robots[robot_name].gps_to_xy(robot, country)
             except KeyError as e:
                 self.get_logger().info(f"Malformed GPS Message!: {e}")
 
@@ -242,18 +248,18 @@ class FleetManager(Node):
             path_request.path.append(cur_loc)
 
             #ADD
-            goal_msg = NavigateToPose.Goal()
-            goal_pose = PoseStamped()
-            goal_pose.header.frame_id = 'map'
-            goal_pose.header.stamp = self.get_clock().now().to_msg()
-            goal_pose.pose.position.x = target_x
-            goal_pose.pose.position.y = target_y
-            yaw_rad = math.radians(target_yaw)  # target_yaw를 라디안 단위로 변환
-            goal_pose.pose.orientation.z = math.sin(yaw_rad / 2)
-            goal_pose.pose.orientation.w = math.cos(yaw_rad / 2)
-            goal_msg.pose = goal_pose
-            self.nav2_client.wait_for_server()
-            self._send_goal_future = self.nav2_client.send_goal_async(goal_msg)
+            # goal_msg = NavigateToPose.Goal()
+            # goal_pose = PoseStamped()
+            # goal_pose.header.frame_id = 'map'
+            # goal_pose.header.stamp = self.get_clock().now().to_msg()
+            # goal_pose.pose.position.x = target_x
+            # goal_pose.pose.position.y = target_y
+            # yaw_rad = math.radians(target_yaw)  # target_yaw를 라디안 단위로 변환
+            # goal_pose.pose.orientation.z = math.sin(yaw_rad / 2)
+            # goal_pose.pose.orientation.w = math.cos(yaw_rad / 2)
+            # goal_msg.pose = goal_pose
+            # self.nav2_client.wait_for_server()
+            # self._send_goal_future = self.nav2_client.send_goal_async(goal_msg)
 
             disp = self.disp([target_x, target_y], [cur_x, cur_y])
             duration = int(disp/self.vehicle_traits.linear.nominal_velocity) +\

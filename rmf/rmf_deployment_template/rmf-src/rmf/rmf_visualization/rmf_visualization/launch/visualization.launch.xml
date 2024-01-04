@@ -39,6 +39,7 @@
       <param name="cleanerBotA_radius" value="1.0"/>
       <param name="cleanerBotE_radius" value="1.0"/>
       <param name="caddy_radius" value="1.5"/>
+      <param name="TurtleBot3_Waffle_Pi_radius" value="0.4"/>
     </node>
 
     <node pkg="rmf_visualization_building_systems" exec="rmf_visualization_building_systems" args="-m $(var map_name)">

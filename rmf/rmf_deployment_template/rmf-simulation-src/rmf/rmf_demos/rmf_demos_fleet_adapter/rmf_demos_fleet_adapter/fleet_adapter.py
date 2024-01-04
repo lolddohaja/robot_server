@@ -118,13 +118,10 @@ def main(argv=sys.argv):
 
     robots = {}
     for robot_name in fleet_config.known_robots:
-        print(robot_name)
         robot_config = fleet_config.get_known_robot_configuration(robot_name)
-        print(robot_config)
         robots[robot_name] = RobotAdapter(
             robot_name, robot_config, node, api, fleet_handle
         )
-        print(robots[robot_name])
 
     def update_loop():
         asyncio.set_event_loop(asyncio.new_event_loop())

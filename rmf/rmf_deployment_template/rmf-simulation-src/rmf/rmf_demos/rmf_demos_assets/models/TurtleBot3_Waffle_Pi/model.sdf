@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
-<sdf version="1.5">
+<sdf version="1.6">
   <model name="TurtleBot3_Waffle_Pi">
-  <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
 
     <!-- TODO(MXG): Find actual physical properties for TurtleBot3 -->
     <plugin name="slotcar" filename="libslotcar.so">
@@ -17,7 +16,7 @@
       <!-- Theoretical no-slip limit with current suspension: 2.166666... -->
       <max_turn_acceleration>1.5</max_turn_acceleration>
 
-      <tire_radius>0.062</tire_radius>
+      <tire_radius>0.066</tire_radius>
       <base_width>0.287</base_width>
 
       <stop_distance>0.25</stop_distance>
@@ -42,6 +41,7 @@
     </plugin>
 
     <link name="base_footprint"/>
+    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
 
     <link name="base_link">
 
