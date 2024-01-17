@@ -5,13 +5,6 @@ ARG NETRC
 SHELL ["bash", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-# install cyclone dds
-RUN apt-get update && apt-get install -y \
-    ros-$ROS_DISTRO-rmw-cyclonedds-cpp \
-    && rm -rf /var/lib/apt/lists/*
-
-
 ENV RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
 # RUN apt update && apt install -y \
@@ -39,7 +32,7 @@ ENV RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
 # RUN sed -i '$isource "/opt/turtlebot3/install/setup.bash"' /ros_entrypoint.sh
 RUN apt update && apt install -y python3-pip
-RUN pip install roslibpy
+RUN pip install roslibpy pyproj
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

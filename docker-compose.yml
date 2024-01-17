@@ -5,9 +5,8 @@ services:
     image: rmf_deployment_template/humble-rmf-web-rmf-server:latest
     # network_mode: host
     ports:
-    - "127.0.0.1:8000:8000"
-    #   - "8006:8006"
-    #   - "7878:7878"
+      - "8000:8000"
+      - "8006:8006"
     stdin_open: true
     tty: true
   
@@ -20,7 +19,7 @@ services:
     environment:
       - DISPLAY
       - QT_X11_NO_MITSHM=1
-      - FASTRTPS_DEFAULT_PROFILES_FILE=/usr/local/share/middleware_profile/rtps_udp_profiles.xml
+      - FASTRTPS_DEFAULT_PROFILES_FILE=/usr/local/share/middleware_profiles/rtps_udp_profile.xml
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
     runtime: nvidia
@@ -42,21 +41,21 @@ services:
     depends_on:
       - rmf_api_server
 
-  rmf_traffic_editor:
-    image: rmf_deployment_template/humble-rmf:latest
-    user: "1000:1000"
-    command: bash -c "traffic-editor"
-    environment:
-      - DISPLAY
-      - QT_X11_NO_MITSHM=1
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ./map:/tmp/map
-    runtime: nvidia
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            capabilities: [gpu]
-    network_mode: host
+  # rmf_traffic_editor:
+  #   image: rmf_deployment_template/humble-rmf:latest
+  #   user: "1000:1000"
+  #   command: bash -c "traffic-editor"
+  #   environment:
+  #     - DISPLAY
+  #     - QT_X11_NO_MITSHM=1
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #     - ./map:/tmp/map
+  #   runtime: nvidia
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #         - driver: nvidia
+  #           capabilities: [gpu]
+  #   network_mode: host

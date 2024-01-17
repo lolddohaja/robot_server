@@ -116,7 +116,6 @@ docker build -f rmf-web/rmf-web-rmf-server.Dockerfile -t rmf_deployment_template
 Run `rmf-api-server`
 ```bash
 docker run --rm --network host \
---env="ROS_DOMAIN_ID=44" \
 -it rmf_deployment_template/humble-rmf-web-rmf-server:latest
 ```
 
@@ -127,7 +126,6 @@ docker run \
 --runtime=nvidia --gpus all --rm --network host \
 --env="DISPLAY" \
 --env="QT_X11_NO_MITSHM=1" \
---env="ROS_DOMAIN_ID=44" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 rmf_deployment_template/humble-rmf-simulation:latest \
 bash -c "ros2 launch rmf_demos_gz_classic glhd.launch.xml \
@@ -153,7 +151,6 @@ docker run \
 --runtime=nvidia --gpus all --rm --network host \
 --env="DISPLAY" \
 --env="QT_X11_NO_MITSHM=1" \
---env="ROS_DOMAIN_ID=44" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 rmf_deployment_template/humble-rmf-simulation:latest \
 bash -c "ros2 topic list"
@@ -161,7 +158,7 @@ bash -c "ros2 topic list"
 
 Run `rmf-web-dashboard`
 ```bash
-docker run --rm -p 3000:80 --network host \
+docker run --rm -p 3000:80 \
 -it rmf_deployment_template/humble-rmf-web-dashboard-local:latest
 ```
 
@@ -234,64 +231,6 @@ open-rmf/rmf_deployment_template/rmf-simulation:latest \
 bash -c "ls /opt/rmf/install/rmf_demos/share/rmf_demos/config/turtlebot_world/turtlebot3_waffle_pi_config.yaml"
 ```
 ---------------------------
-
----------------------------
-Run `rmf-simulation`
-```bash
-docker run --network=host \
--it \
---runtime=nvidia --gpus all --rm \
---env="DISPLAY" \
---env="QT_X11_NO_MITSHM=1" \
---volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
---volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-rmf_deployment_template/iron-rmf-simulation:latest \
-bash -c "ros2 launch rmf_demos_gz_classic simulation.launch.xml map_name:=glhd headless:=false"
-```
-Run `rmf-common`
-```bash
-docker run --network=host \
--it \
---runtime=nvidia --gpus all --rm \
---env="DISPLAY" \
---env="QT_X11_NO_MITSHM=1" \
---volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
---volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-rmf_deployment_template/iron-rmf-simulation:latest \
-bash -c "ros2 launch rmf_demos common.launch.xml \
-config_file:=/opt/rmf/install/rmf_demos_maps/share/rmf_demos_maps/glhd/glhd.building.yaml \
-viz_config_file:=/opt/rmf/install/rmf_demos/share/rmf_demos/include/glhd/glhd.rviz"
-```
-
-Run `rmf-fleep-adapter`
-```bash
-docker run --network=host \
--it \
---runtime=nvidia --gpus all --rm \
---env="DISPLAY" \
---env="QT_X11_NO_MITSHM=1" \
---volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
---volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-rmf_deployment_template/iron-rmf-simulation:latest \
-bash -c "ros2 launch rmf_demos_fleet_adapter fleet_adapter.launch.xml \
-use_sim_time:=true \
-nav_graph_file:=/opt/rmf/install/rmf_demos_maps/share/rmf_demos_maps/maps/glhd/nav_graphs/0.yaml \
-config_file:=/opt/rmf/install/rmf_demos/share/rmf_demos/config/glhd/deliveryRobot_config.yaml"
-```
-
-```bash
-docker run --network=host \
--it \
---runtime=nvidia --gpus all --rm \
---env="DISPLAY" \
---env="QT_X11_NO_MITSHM=1" \
---volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
---volume="/home/progryu/.gazebo/models:/root/.gazebo/models" \
-rmf_deployment_template/iron-rmf-simulation:latest \
-bash -c "ls /opt/rmf/install/rmf_demos_maps/share/rmf_demos_maps/maps/glhd"
-```
----------------------------
-
 
 # Build turtlebot3
 
@@ -540,7 +479,7 @@ docker run --network=host \
 --env="QT_X11_NO_MITSHM=1" \
 --env="ROS_DOMAIN_ID=44" \
 --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
---volume="./test.py:/test.py" \
-irontest/roslibpy:latest \
-bash -c "python3 test.py"
+--volume="./gps_test.py:/gps_test.py" \
+humbletest/roslibpy:latest \
+bash -c "python3 gps_test.py"
 ```
